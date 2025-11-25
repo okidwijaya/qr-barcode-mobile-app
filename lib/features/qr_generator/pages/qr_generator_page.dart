@@ -12,6 +12,7 @@ class QrGeneratorPage extends StatefulWidget {
 
 class _QrGeneratorPageState extends State<QrGeneratorPage> {
   final TextEditingController _controller = TextEditingController();
+  final GlobalKey  _qrKey = GlobalKey();
   String? _qrData;
   List<String> _history = [];
 
@@ -96,11 +97,14 @@ class _QrGeneratorPageState extends State<QrGeneratorPage> {
             if (_qrData != null && _qrData!.isNotEmpty)
               Column(
                 children: [
-                  QrImageView(
-                    data: _qrData!,
-                    version: QrVersions.auto,
-                    size: 200,
-                    backgroundColor: Colors.white,
+                  RepaintBoundary(
+                    key: _qrKey,
+                    child: QrImageView(
+                      data: _qrData!,
+                      version: QrVersions.auto,
+                      size: 200,
+                      backgroundColor: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
