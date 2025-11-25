@@ -428,9 +428,8 @@ class EmptyStateWidget extends StatelessWidget {
   }
 }
 
-// Speed Dial FAB Widget
 class SpeedDialFAB extends StatefulWidget {
-  final HomeController controller;
+  final dynamic controller;
 
   const SpeedDialFAB({Key? key, required this.controller}) : super(key: key);
 
@@ -438,161 +437,109 @@ class SpeedDialFAB extends StatefulWidget {
   State<SpeedDialFAB> createState() => _SpeedDialFABState();
 }
 
-class _SpeedDialFABState extends State<SpeedDialFAB>
-    with SingleTickerProviderStateMixin {
+class _SpeedDialFABState extends State<SpeedDialFAB> {
   bool isOpen = false;
-  late AnimationController _animController;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 300),
-    );
-    _scaleAnimation = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeInOut,
-    );
-  }
-
-  @override
-  void dispose() {
-    _animController.dispose();
-    super.dispose();
-  }
 
   void toggleMenu() {
     setState(() {
       isOpen = !isOpen;
-      if (isOpen) {
-        _animController.forward();
-      } else {
-        _animController.reverse();
-      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 24),
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            bottom: 32, 
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isOpen) ...[
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: _buildOption(
-                      icon: Icons.qr_code,
-                      label: 'Generate QR',
-                      onTap: () {
-                        toggleMenu();
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          GoRouter.of(context).go('/qr_generator');
-                        });
-                        // widget.controller.generateQR();
-                      },
-                      color: Colors.green,
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: _buildOption(
-                      icon: Icons.barcode_reader,
-                      label: 'Generate Barcode',
-                      onTap: () {
-                        toggleMenu();
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          GoRouter.of(context).go('/barcode_generator');
-                        });
-                        // widget.controller.generateBarcode();
-                      },
-                      color: Colors.orange,
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                ],
-              ],
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(bottom: 0),
-            child: SizedBox(
-              width: 36,
-              height: 36,
-              child: FloatingActionButton(
-                onPressed: toggleMenu,
-                backgroundColor: Colors.blue[700],
-                elevation: 8,
-                child: AnimatedRotation(
-                  turns: isOpen ? 0.125 : 0,
-                  duration: Duration(milliseconds: 300),
-                  child: Icon(
-                    isOpen ? Icons.close : Icons.add,
-                    size: 24,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required Color color,
-  }) {
-    return Row(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Material(
-          color: Colors.white,
-          elevation: 20,
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-          ),
+        AnimatedSwitcher(
+          duration: Duration(milliseconds: 200),
+          child:
+              isOpen
+                  ? Column(
+                    key: ValueKey('menu'),
+                    children: [
+                      _buildOption(
+                        context: context,
+                        icon: Icons.qr_code,
+                        label: 'Generate QR',
+                        onTap: () {
+                          setState(() => isOpen = false);
+                          context.go('/qr_generator');
+                        },
+                        color: Colors.green,
+                      ),
+                      SizedBox(height: 12),
+                      _buildOption(
+                        context: context,
+                        icon: Icons.barcode_reader,
+                        label: 'Generate Barcode',
+                        onTap: () {
+                          setState(() => isOpen = false);
+                          context.go('/barcode_generator');
+                        },
+                        color: Colors.orange,
+                      ),
+                    ],
+                  )
+                  : SizedBox.shrink(),
         ),
-        SizedBox(width: 12),
-        SizedBox(
-          width: 32,
-          height: 32,
-          child: FloatingActionButton(
-            mini: true,
-            onPressed: onTap,
-            backgroundColor: color,
-            elevation: 20,
-            child: Icon(icon, size: 14),
-          ),
+        // Main FAB
+        FloatingActionButton(
+          onPressed: toggleMenu,
+          backgroundColor: Colors.blue[700],
+          heroTag: 'main_fab',
+          child: Icon(isOpen ? Icons.close : Icons.add, size: 28),
         ),
       ],
     );
   }
 }
 
-// Custom Bottom Navigation Bar Widget
+Widget _buildOption({
+  required BuildContext context,
+  required IconData icon,
+  required String label,
+  required VoidCallback onTap,
+  required Color color,
+}) {
+  return Material(
+    elevation: 8,
+    borderRadius: BorderRadius.circular(50),
+    color: Colors.white,
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(50),
+      child: Padding(
+        padding: EdgeInsets.all(4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            SizedBox(width: 4),
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              child: Icon(icon, size: 24, color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+// COMPLETELY REBUILT BOTTOM NAV BAR
 class CustomBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onTap;
@@ -606,72 +553,91 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
-      height: 80,
+      height: 70,
       shape: CircularNotchedRectangle(),
-      notchMargin: 3,
-      elevation: 8,
+      notchMargin: 8,
+      elevation: 22,
       color: Colors.white,
-      child: Container(
-        height: 24,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              icon: Icons.qr_code_scanner,
-              label: 'Scan QR',
-              index: 1,
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {
-                // Navigate to QR Scanner using GoRouter
-                GoRouter.of(context).go('/qr_scanner');
+                context.go('/qr_scanner');
               },
-            ),
-            SizedBox(width: 80),
-            _buildNavItem(
-              icon: Icons.document_scanner,
-              label: 'Scan Barcode',
-              index: 0,
-              onTap: () {
-                // Navigate to Barcode Scanner using GoRouter
-                GoRouter.of(context).go('/barcode_scanner');
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required int index,
-    required VoidCallback onTap,
-  }) {
-    final isSelected = selectedIndex == index;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.blue[700] : Colors.grey[400],
-              size: 16,
-            ),
-            SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: isSelected ? Colors.blue[700] : Colors.grey[400],
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.qr_code_scanner,
+                      color:
+                          selectedIndex == 1
+                              ? Colors.blue[700]
+                              : Colors.grey[400],
+                      size: 22,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Scan QR',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color:
+                            selectedIndex == 1
+                                ? Colors.blue[700]
+                                : Colors.grey[400],
+                        fontWeight:
+                            selectedIndex == 1
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          SizedBox(width: 80),
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                context.go('/barcode_scanner');
+              },
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.document_scanner,
+                      color:
+                          selectedIndex == 0
+                              ? Colors.blue[700]
+                              : Colors.grey[400],
+                      size: 22,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Scan Barcode',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color:
+                            selectedIndex == 0
+                                ? Colors.blue[700]
+                                : Colors.grey[400],
+                        fontWeight:
+                            selectedIndex == 0
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

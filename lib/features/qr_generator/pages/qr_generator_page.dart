@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
 
 class QrGeneratorPage extends StatefulWidget {
   const QrGeneratorPage({super.key});
@@ -10,7 +11,6 @@ class QrGeneratorPage extends StatefulWidget {
 }
 
 class _QrGeneratorPageState extends State<QrGeneratorPage> {
-
   final TextEditingController _controller = TextEditingController();
   String? _qrData;
   List<String> _history = [];
@@ -42,9 +42,16 @@ class _QrGeneratorPageState extends State<QrGeneratorPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Generate QR Code'),
+        centerTitle: true,
         backgroundColor: Colors.blue[700],
         foregroundColor: Colors.white,
-        centerTitle: true,
+        elevation: 1,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go('/');
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
@@ -76,7 +83,10 @@ class _QrGeneratorPageState extends State<QrGeneratorPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[700],
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 14,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -114,31 +124,32 @@ class _QrGeneratorPageState extends State<QrGeneratorPage> {
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: _history.isEmpty
-                  ? const Center(child: Text('No QR codes generated yet.'))
-                  : ListView.separated(
-                      itemCount: _history.length,
-                      separatorBuilder: (_, __) => const Divider(),
-                      itemBuilder: (context, index) {
-                        final item = _history[index];
-                        return ListTile(
-                          title: Text(
-                            item,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.qr_code),
-                            onPressed: () {
-                              setState(() {
-                                _qrData = item;
-                                _controller.text = item;
-                              });
-                            },
-                          ),
-                        );
-                      },
-                    ),
+              child:
+                  _history.isEmpty
+                      ? const Center(child: Text('No QR codes generated yet.'))
+                      : ListView.separated(
+                        itemCount: _history.length,
+                        separatorBuilder: (_, __) => const Divider(),
+                        itemBuilder: (context, index) {
+                          final item = _history[index];
+                          return ListTile(
+                            title: Text(
+                              item,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.qr_code),
+                              onPressed: () {
+                                setState(() {
+                                  _qrData = item;
+                                  _controller.text = item;
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      ),
             ),
           ],
         ),

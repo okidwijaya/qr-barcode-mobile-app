@@ -39,6 +39,30 @@ class HomeController extends GetxController {
           data: 'Contact: John Doe +1234567890',
           timestamp: DateTime.now().subtract(Duration(days: 3)),
         ),
+        ScanItem(
+          id: '5',
+          type: ScanType.barcode,
+          data: '123456789012',
+          timestamp: DateTime.now().subtract(Duration(hours: 2)),
+        ),
+        ScanItem(
+          id: '6',
+          type: ScanType.qr,
+          data: 'https://example.com',
+          timestamp: DateTime.now().subtract(Duration(days: 1)),
+        ),
+        ScanItem(
+          id: '7',
+          type: ScanType.barcode,
+          data: '987654321098',
+          timestamp: DateTime.now().subtract(Duration(days: 2)),
+        ),
+        ScanItem(
+          id: '8',
+          type: ScanType.qr,
+          data: 'Contact: John Doe +1234567890',
+          timestamp: DateTime.now().subtract(Duration(days: 3)),
+        ),
       ],
     );
   }

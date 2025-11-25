@@ -57,38 +57,63 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      body: Obx(() {
-        final currentState = controller.state.value;
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Obx(() {
+              final currentState = controller.state.value;
 
-        if (currentState.isLoading) {
-          return Center(
-            child: CircularProgressIndicator(
-              color: Colors.blue[700],
-            ),
-          );
-        }
+              if (currentState.isLoading) {
+                return Center(
+                  child: CircularProgressIndicator(color: Colors.blue[700]),
+                );
+              }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            HeaderSection(itemCount: currentState.scanHistory.length),
-            Expanded(
-              child: currentState.scanHistory.isEmpty
-                  ? EmptyStateWidget()
-                  : ScanHistoryList(
-                      items: currentState.scanHistory,
-                      controller: controller,
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: HeaderSection(
+                      itemCount: currentState.scanHistory.length,
                     ),
+                  ),
+                  Expanded(
+                    child:
+                        currentState.scanHistory.isEmpty
+                            ? EmptyStateWidget()
+                            : ScanHistoryList(
+                              items: currentState.scanHistory,
+                              controller: controller,
+                            ),
+                  ),
+                ],
+              );
+            }),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: CustomBottomNavBar(
+              selectedIndex: controller.state.value.selectedNavIndex,
+              onTap: controller.onBottomNavTap,
             ),
-          ],
-        );
-      }),
-      floatingActionButton: SpeedDialFAB(controller: controller),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: Obx(() => CustomBottomNavBar(
-            selectedIndex: controller.state.value.selectedNavIndex,
-            onTap: controller.onBottomNavTap,
-          )),
+          ),
+
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: IgnorePointer(
+                ignoring: false,
+                child: SpeedDialFAB(controller: controller),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

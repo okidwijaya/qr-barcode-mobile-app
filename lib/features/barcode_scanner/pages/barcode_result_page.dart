@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class BarcodeResultPage extends StatefulWidget {
@@ -10,6 +11,17 @@ class BarcodeResultPage extends StatefulWidget {
 class _BarcodeResultPageState extends State<BarcodeResultPage> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Barcode Result'),
+        centerTitle: true,
+        backgroundColor: Colors.blue[700],
+        foregroundColor: Colors.white,
+        elevation: 1,
+      ),
+      body: const Center(
+        child: Text('Barcode Result Page - Under Construction'),
+      ),
+    );
   }
 }
