@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../controller/home_state.dart';
+import './home_state.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeController extends GetxController {
   final state = HomeState().obs;
@@ -10,61 +13,53 @@ class HomeController extends GetxController {
     loadScanHistory();
   }
 
-  void loadScanHistory() {
-    // Simulate loading data
-    state.value = state.value.copyWith(
-      isLoading: false,
-      scanHistory: [
-        ScanItem(
-          id: '1',
-          type: ScanType.barcode,
-          data: '123456789012',
-          timestamp: DateTime.now().subtract(Duration(hours: 2)),
-        ),
-        ScanItem(
-          id: '2',
-          type: ScanType.qr,
-          data: 'https://example.com',
-          timestamp: DateTime.now().subtract(Duration(days: 1)),
-        ),
-        ScanItem(
-          id: '3',
-          type: ScanType.barcode,
-          data: '987654321098',
-          timestamp: DateTime.now().subtract(Duration(days: 2)),
-        ),
-        ScanItem(
-          id: '4',
-          type: ScanType.qr,
-          data: 'Contact: John Doe +1234567890',
-          timestamp: DateTime.now().subtract(Duration(days: 3)),
-        ),
-        ScanItem(
-          id: '5',
-          type: ScanType.barcode,
-          data: '123456789012',
-          timestamp: DateTime.now().subtract(Duration(hours: 2)),
-        ),
-        ScanItem(
-          id: '6',
-          type: ScanType.qr,
-          data: 'https://example.com',
-          timestamp: DateTime.now().subtract(Duration(days: 1)),
-        ),
-        ScanItem(
-          id: '7',
-          type: ScanType.barcode,
-          data: '987654321098',
-          timestamp: DateTime.now().subtract(Duration(days: 2)),
-        ),
-        ScanItem(
-          id: '8',
-          type: ScanType.qr,
-          data: 'Contact: John Doe +1234567890',
-          timestamp: DateTime.now().subtract(Duration(days: 3)),
-        ),
-      ],
-    );
+  Future<void> loadScanHistory() async {
+    state.value = state.value.copyWith(isLoading: true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final qrHistory = prefs.getStringList('qr_history') ?? [];
+      final barcodeHistory = prefs.getStringList('barcode_history') ?? [];
+
+      List<ScanItem> items = [];
+
+      for (int i = 0; i < qrHistory.length; i++) {
+        items.add(
+          ScanItem(
+            id: 'qr_${DateTime.now().millisecondsSinceEpoch}_$i',
+            data: qrHistory[i],
+            type: ScanType.qr,
+            timestamp: DateTime.now().subtract(Duration(minutes: i * 30)),
+          ),
+        );
+      }
+
+      for (int i = 0; i < barcodeHistory.length; i++) {
+        items.add(
+          ScanItem(
+            id: 'barcode_${DateTime.now().millisecondsSinceEpoch}_$i',
+            data: barcodeHistory[i],
+            type: ScanType.barcode,
+            timestamp: DateTime.now().subtract(
+              Duration(minutes: (i + qrHistory.length) * 30),
+            ),
+          ),
+        );
+      }
+
+      items.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+      state.value = state.value.copyWith(isLoading: false, scanHistory: items);
+    } catch (e) {
+      state.value = state.value.copyWith(isLoading: false);
+      Get.snackbar(
+        'Error',
+        'Failed to load scan history',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[900],
+      );
+    }
   }
 
   void onBottomNavTap(int index) {
@@ -112,27 +107,62 @@ class HomeController extends GetxController {
     );
   }
 
-  void deleteScanItem(String id) {
-    final updatedHistory = List<ScanItem>.from(state.value.scanHistory)
-      ..removeWhere((item) => item.id == id);
-    
-    state.value = state.value.copyWith(scanHistory: updatedHistory);
-    
-    Get.snackbar(
-      'Deleted',
-      'Item removed successfully',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: Duration(seconds: 2),
-    );
+  Future<void> deleteScanItem(String id) async {
+    try {
+      final updatedHistory = List<ScanItem>.from(state.value.scanHistory)
+        ..removeWhere((item) => item.id == id);
+
+      state.value = state.value.copyWith(scanHistory: updatedHistory);
+
+      await _syncToSharedPreferences(updatedHistory);
+
+      Get.snackbar(
+        'Deleted',
+        'Item removed successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.green[100],
+        colorText: Colors.green[900],
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to delete item',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[900],
+      );
+    }
+  }
+
+  Future<void> _syncToSharedPreferences(List<ScanItem> items) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final qrItems =
+        items
+            .where((item) => item.type == ScanType.qr)
+            .map((item) => item.data)
+            .toList();
+
+    final barcodeItems =
+        items
+            .where((item) => item.type == ScanType.barcode)
+            .map((item) => item.data)
+            .toList();
+
+    await prefs.setStringList('qr_history', qrItems);
+    await prefs.setStringList('barcode_history', barcodeItems);
   }
 
   void copyScanData(String data) {
-    // Copy to clipboard logic here
+    Clipboard.setData(ClipboardData(text: data));
     Get.snackbar(
       'Copied',
       'Data copied to clipboard',
       snackPosition: SnackPosition.BOTTOM,
       duration: Duration(seconds: 2),
+      backgroundColor: Colors.blue[100],
+      colorText: Colors.blue[900],
     );
   }
 }

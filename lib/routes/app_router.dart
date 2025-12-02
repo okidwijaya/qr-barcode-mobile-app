@@ -1,8 +1,4 @@
 import 'package:go_router/go_router.dart';
-import 'package:qr_app/routes/app_routes.dart';
-import '../features/auth/pages/login_page.dart';
-import '../features/auth/pages/profile_page.dart';
-import '../features/auth/pages/register_page.dart';
 import '../features/barcode_generator/pages/barcode_generator_page.dart';
 import '../features/barcode_scanner/pages/barcode_scan_page.dart';
 import '../features/barcode_scanner/pages/barcode_result_page.dart';
@@ -10,6 +6,10 @@ import '../features/home/pages/home_page.dart';
 import '../features/qr_generator/pages/qr_generator_page.dart';
 import '../features/qr_scanner/pages/qr_result_page.dart';
 import '../features/qr_scanner/pages/qr_scan_page.dart';
+// import 'package:qr_app/routes/app_routes.dart';
+// import '../features/auth/pages/login_page.dart';
+// import '../features/auth/pages/profile_page.dart';
+// import '../features/auth/pages/register_page.dart';
 
 class AppRouter{
   static final router = GoRouter(

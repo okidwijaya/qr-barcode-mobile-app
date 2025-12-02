@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qr_app/routes/go_router_ad_extension.dart';
 
 class BarcodeScanPage extends StatefulWidget {
   const BarcodeScanPage({super.key});
@@ -32,7 +33,7 @@ class _BarcodeScanPageState extends State<BarcodeScanPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/');
+            context.popWithAd();
           },
         ),
       ),
@@ -145,7 +146,7 @@ class _BarcodeScanPageState extends State<BarcodeScanPage> {
           padding: const EdgeInsets.only(bottom: 32),
           child: OutlinedButton.icon(
             onPressed: () {
-              context.go('/');
+              context.popWithAd();
             },
             icon: const Icon(Icons.arrow_back),
             label: const Text('Back'),

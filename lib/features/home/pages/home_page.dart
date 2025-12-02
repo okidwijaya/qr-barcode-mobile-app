@@ -1,10 +1,85 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get/get.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../controller/home_controller.dart';
 import '../widget/home_widget.dart';
+import 'dart:io' show Platform;
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  BannerAd? _bannerAd;
+  bool _isBannerAdLoaded = false;
+  bool _isAdSupported = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAdSupport();
+    if (_isAdSupported) {
+      _loadBannerAd();
+    }
+  }
+
+  void _checkAdSupport() {
+    if (!kIsWeb) {
+      try {
+        _isAdSupported = Platform.isAndroid || Platform.isIOS;
+      } catch (e) {
+        _isAdSupported = false;
+      }
+    }
+  }
+
+  void _loadBannerAd() {
+    if (!_isAdSupported) {
+      return;
+    }
+
+    String adUnitId;
+    if (Platform.isAndroid) {
+      adUnitId = 'ca-app-pub-4774376429155227/2701362131';
+    } else {
+      return;
+    }
+    // } else if (Platform.isIOS) {
+    //   adUnitId = 'ca-app-pub-3940256099942544/2934735716';
+
+    _bannerAd = BannerAd(
+      adUnitId: adUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          if (mounted) {
+            setState(() {
+              _isBannerAdLoaded = true;
+            });
+          }
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+        // onAdOpened: (ad) => print('Banner ad opened'),
+        // onAdClosed: (ad) => print('Banner ad closed'),
+        // onAdImpression: (ad) => print('Banner ad impression'),
+      ),
+    );
+
+    _bannerAd?.load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,24 +113,24 @@ class HomePage extends StatelessWidget {
             ),
           ],
         ),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: GestureDetector(
-              onTap: () {
-                Get.snackbar(
-                  'Account',
-                  'Profile page coming soon',
-                  snackPosition: SnackPosition.TOP,
-                );
-              },
-              child: CircleAvatar(
-                backgroundColor: Colors.blue[100],
-                child: Icon(Icons.person, color: Colors.blue[700]),
-              ),
-            ),
-          ),
-        ],
+        // actions: [
+        //   Padding(
+        //     padding: EdgeInsets.only(right: 12),
+        //     child: GestureDetector(
+        //       onTap: () {
+        //         Get.snackbar(
+        //           'Account',
+        //           'Profile page coming soon',
+        //           snackPosition: SnackPosition.TOP,
+        //         );
+        //       },
+        //       child: CircleAvatar(
+        //         backgroundColor: Colors.blue[100],
+        //         child: Icon(Icons.person, color: Colors.blue[700]),
+        //       ),
+        //     ),
+        //   ),
+        // ],
       ),
       body: Stack(
         children: [
@@ -91,6 +166,36 @@ class HomePage extends StatelessWidget {
               );
             }),
           ),
+
+          if (_isAdSupported)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 80,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: Offset(0, -2),
+                    ),
+                  ],
+                ),
+                height: 50,
+                child:
+                    _isBannerAdLoaded && _bannerAd != null
+                        ? AdWidget(ad: _bannerAd!)
+                        : Center(
+                          child: Text(
+                            'Loading ad...',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+              ),
+            ),
+
           Positioned(
             left: 0,
             right: 0,

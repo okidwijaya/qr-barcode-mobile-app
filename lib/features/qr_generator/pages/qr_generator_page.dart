@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:qr_app/routes/go_router_ad_extension.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:go_router/go_router.dart';
 
 class QrGeneratorPage extends StatefulWidget {
   const QrGeneratorPage({super.key});
@@ -50,7 +50,7 @@ class _QrGeneratorPageState extends State<QrGeneratorPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/');
+            context.popWithAd();
           },
         ),
       ),

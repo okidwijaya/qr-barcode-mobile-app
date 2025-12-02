@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qr_app/routes/go_router_ad_extension.dart';
 
 class QrScanPage extends StatefulWidget {
   const QrScanPage({super.key});
@@ -31,7 +31,7 @@ class _QrScanPageState extends State<QrScanPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/');
+            context.popWithAd();
           },
         ),
       ),

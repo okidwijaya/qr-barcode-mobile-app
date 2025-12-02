@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
-import '../controller/home_controller.dart';
-import '../controller/home_state.dart';
+import 'package:qr_app/features/home/controller/home_controller.dart';
+import 'package:get/get.dart';
+import 'package:qr_app/features/home/controller/home_state.dart';
+import 'package:qr_app/routes/go_router_ad_extension.dart';
 
-// Header Section Widget
 class HeaderSection extends StatelessWidget {
   final int itemCount;
 
@@ -13,34 +12,33 @@ class HeaderSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             'Scan History',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
-          SizedBox(height: 8),
-          Text(
-            '$itemCount items',
-            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '$itemCount items',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.blue[700],
+              ),
+            ),
           ),
         ],
       ),
@@ -48,7 +46,36 @@ class HeaderSection extends StatelessWidget {
   }
 }
 
-// Scan History List Widget
+class EmptyStateWidget extends StatelessWidget {
+  const EmptyStateWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.history, size: 80, color: Colors.grey[300]),
+          SizedBox(height: 16),
+          Text(
+            'No scan history',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Your scanned codes will appear here',
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class ScanHistoryList extends StatelessWidget {
   final List<ScanItem> items;
   final HomeController controller;
@@ -75,7 +102,6 @@ class ScanHistoryList extends StatelessWidget {
   }
 }
 
-// Scan History Card Widget
 class ScanHistoryCard extends StatelessWidget {
   final ScanItem item;
   final VoidCallback onDelete;
@@ -187,7 +213,6 @@ class ScanHistoryCard extends StatelessWidget {
                   ),
                   onSelected: (value) {
                     if (value == 'copy') {
-                      Clipboard.setData(ClipboardData(text: item.data));
                       onCopy();
                     } else if (value == 'delete') {
                       _confirmDelete(context);
@@ -251,180 +276,158 @@ class ScanHistoryCard extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text('Delete Item'),
-            content: Text('Are you sure you want to delete this item?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  onDelete();
-                },
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: Text('Delete'),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void _showDetailDialog(BuildContext context, Color color, bool isBarcode) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Container(
-              padding: EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      isBarcode ? Icons.barcode_reader : Icons.qr_code,
-                      color: color,
-                      size: 40,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    isBarcode ? 'Barcode' : 'QR Code',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: SelectableText(
-                      item.data,
-                      style: TextStyle(fontSize: 16, color: Colors.black87),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    _formatDate(item.timestamp),
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                  ),
-                  SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Clipboard.setData(ClipboardData(text: item.data));
-                            onCopy();
-                          },
-                          icon: Icon(Icons.copy),
-                          label: Text('Copy'),
-                          style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text('Close'),
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            backgroundColor: Colors.blue[700],
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-    );
-  }
-}
-
-// Empty State Widget
-class EmptyStateWidget extends StatelessWidget {
-  const EmptyStateWidget({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.qr_code_scanner_rounded,
-              size: 60,
-              color: Colors.blue[300],
-            ),
-          ),
-          SizedBox(height: 24),
-          Text(
-            'No Scans Yet',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: 12),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 48),
-            child: Text(
-              'Start scanning barcodes and QR codes\nto see them here',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.grey[600],
-                height: 1.4,
-              ),
-            ),
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Delete Item'),
+        content: Text('Are you sure you want to delete this item?'),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              onDelete();
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text('Delete'),
           ),
         ],
       ),
     );
+  }
+
+  void _showDetailDialog(BuildContext context, Color color, bool isBarcode) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  isBarcode ? Icons.barcode_reader : Icons.qr_code,
+                  color: color,
+                  size: 40,
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                isBarcode ? 'Barcode' : 'QR Code',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: SelectableText(
+                  item.data,
+                  style: TextStyle(fontSize: 16, color: Colors.black87),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                _formatDate(item.timestamp),
+                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+              ),
+              SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Get.back();
+                        onCopy();
+                      },
+                      icon: Icon(Icons.copy),
+                      label: Text('Copy'),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Get.back(),
+                      child: Text('Close'),
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        backgroundColor: Colors.blue[700],
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ScanHistoryWidget extends StatefulWidget {
+  const ScanHistoryWidget({Key? key}) : super(key: key);
+
+  @override
+  State<ScanHistoryWidget> createState() => _ScanHistoryWidgetState();
+}
+
+class _ScanHistoryWidgetState extends State<ScanHistoryWidget> {
+  List<ScanItem> _scanItems = [];
+  bool _isLoading = true;
+  late HomeController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<HomeController>();
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    await controller.loadScanHistory();
+    setState(() {
+      _scanItems = controller.state.value.scanHistory;
+      _isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    if (_scanItems.isEmpty) {
+      return EmptyStateWidget();
+    }
+
+    return ScanHistoryList(items: _scanItems, controller: controller);
   }
 }
 
@@ -464,7 +467,7 @@ class _SpeedDialFABState extends State<SpeedDialFAB> {
                         label: 'Generate QR',
                         onTap: () {
                           setState(() => isOpen = false);
-                          context.go('/qr_generator');
+                          context.pushWithAd('/qr_generator');
                         },
                         color: Colors.green,
                       ),
@@ -475,7 +478,7 @@ class _SpeedDialFABState extends State<SpeedDialFAB> {
                         label: 'Generate Barcode',
                         onTap: () {
                           setState(() => isOpen = false);
-                          context.go('/barcode_generator');
+                          context.pushWithAd('/barcode_generator');
                         },
                         color: Colors.orange,
                       ),
@@ -483,12 +486,11 @@ class _SpeedDialFABState extends State<SpeedDialFAB> {
                   )
                   : SizedBox.shrink(),
         ),
-        // Main FAB
         FloatingActionButton(
           onPressed: toggleMenu,
-          backgroundColor: Colors.blue[700],
+          backgroundColor: Color(0xFFFF5F15),
           heroTag: 'main_fab',
-          child: Icon(isOpen ? Icons.close : Icons.add, size: 28),
+          child: Icon(isOpen ? Icons.close : Icons.add, size: 28, color: Colors.white,),
         ),
       ],
     );
@@ -539,7 +541,6 @@ Widget _buildOption({
   );
 }
 
-// COMPLETELY REBUILT BOTTOM NAV BAR
 class CustomBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onTap;
@@ -564,7 +565,7 @@ class CustomBottomNavBar extends StatelessWidget {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                context.go('/qr_scanner');
+                context.pushWithAd('/qr_scanner');
               },
               child: Center(
                 child: Column(
@@ -603,7 +604,7 @@ class CustomBottomNavBar extends StatelessWidget {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                context.go('/barcode_scanner');
+                context.pushWithAd('/barcode_scanner');
               },
               child: Center(
                 child: Column(

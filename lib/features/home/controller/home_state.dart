@@ -1,28 +1,27 @@
-enum ScanType { barcode, qr }
-
+enum ScanType { qr, barcode }
 class ScanItem {
   final String id;
-  final ScanType type;
   final String data;
+  final ScanType type;
   final DateTime timestamp;
 
   ScanItem({
     required this.id,
-    required this.type,
     required this.data,
+    required this.type,
     required this.timestamp,
   });
 
   ScanItem copyWith({
     String? id,
-    ScanType? type,
     String? data,
+    ScanType? type,
     DateTime? timestamp,
   }) {
     return ScanItem(
       id: id ?? this.id,
-      type: type ?? this.type,
       data: data ?? this.data,
+      type: type ?? this.type,
       timestamp: timestamp ?? this.timestamp,
     );
   }
@@ -30,28 +29,24 @@ class ScanItem {
 
 class HomeState {
   final bool isLoading;
-  final List<ScanItem> scanHistory;
   final int selectedNavIndex;
-  final String? errorMessage;
+  final List<ScanItem> scanHistory;
 
   HomeState({
     this.isLoading = true,
+    this.selectedNavIndex = 2,
     this.scanHistory = const [],
-    this.selectedNavIndex = 0,
-    this.errorMessage,
   });
 
   HomeState copyWith({
     bool? isLoading,
-    List<ScanItem>? scanHistory,
     int? selectedNavIndex,
-    String? errorMessage,
+    List<ScanItem>? scanHistory,
   }) {
     return HomeState(
       isLoading: isLoading ?? this.isLoading,
-      scanHistory: scanHistory ?? this.scanHistory,
       selectedNavIndex: selectedNavIndex ?? this.selectedNavIndex,
-      errorMessage: errorMessage,
+      scanHistory: scanHistory ?? this.scanHistory,
     );
   }
 }
