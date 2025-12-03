@@ -277,7 +277,7 @@ class _QrGeneratorPageState extends State<QrGeneratorPage> {
                           itemCount: _history.length,
                           separatorBuilder:
                               (_, __) => const SizedBox(height: 12),
-                          padding: const EdgeInsets.all(16),
+                          // padding: const EdgeInsets.all(8),
                           itemBuilder: (context, index) {
                             final item = _history[index];
                             return Container(

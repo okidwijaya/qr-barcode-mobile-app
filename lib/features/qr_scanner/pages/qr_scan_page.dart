@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_app/routes/go_router_ad_extension.dart';
 
@@ -19,116 +20,272 @@ class _QrScanPageState extends State<QrScanPage> {
     controller?.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scan QR Code'),
+        title: const Text(
+          'Scan QR Code',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         centerTitle: true,
-        backgroundColor: Color(0xFFFF5F15),
+        backgroundColor: const Color(0xFFFF5F15),
         foregroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.popWithAd();
-          },
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => context.popWithAd(),
         ),
       ),
       body: _buildScannerView(context),
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[50],
     );
   }
 
-
   Widget _buildScannerView(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 32),
-        Center(
-          child: AspectRatio(
-            aspectRatio: 1,
+    return SafeArea(
+      child: Column(
+        children: [
+          // Header Section
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFF5F15),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.qr_code_2_rounded,
+                  size: 48,
+                  color: Colors.white.withOpacity(0.9),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Position QR code within frame',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Scanner Frame (Square for QR)
+          Center(
             child: Container(
-              width: 300,
-              height: 180,
+              width: MediaQuery.of(context).size.width * 0.75,
+              height: MediaQuery.of(context).size.width * 0.75,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.blueAccent, width: 2),
+                border: Border.all(
+                  color: const Color(0xFFFF5F15).withOpacity(0.3),
+                  width: 3,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFFFF5F15).withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: MobileScanner(
-                  controller: controller ??= MobileScannerController(),
-                  onDetect: (capture) {
-                    final List<Barcode> barcodes = capture.barcodes;
-                    if (barcodes.isNotEmpty && !scanned) {
-                      setState(() {
-                        scanned = true;
-                      });
-                      controller?.stop();
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('QR Code Found'),
-                          content: Text(barcodes.first.rawValue ?? ''),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                                setState(() {
-                                  scanned = false;
-                                });
-                                controller?.start();
-                              },
-                              child: const Text('OK'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                  },
+                borderRadius: BorderRadius.circular(21),
+                child: Stack(
+                  children: [
+                    MobileScanner(
+                      controller: controller ??= MobileScannerController(
+                        detectionSpeed: DetectionSpeed.normal,
+                        facing: CameraFacing.back,
+                      ),
+                      onDetect: _handleQrDetection,
+                    ),
+                    // Corner decorations
+                    _buildCornerDecorations(),
+                  ],
                 ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 32),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32),
-          child: Text(
-            'Align the QR code within the frame to scan.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.black87),
+
+          const SizedBox(height: 24),
+
+          // Instructions
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Colors.blue.shade700,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Hold steady and align the QR code',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.blue.shade900,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const Spacer(),
+
+          // Action Buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: Column(
+              children: [
+                // Flashlight Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _toggleFlashlight,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF5F15),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          isFlashOn ? Icons.flash_off : Icons.flash_on,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          isFlashOn ? 'Turn Off Flash' : 'Turn On Flash',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Back Button
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => context.popWithAd(),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFFF5F15),
+                      side: const BorderSide(
+                        color: Color(0xFFFF5F15),
+                        width: 2,
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCornerDecorations() {
+    return Stack(
+      children: [
+        // Top-left corner
+        Positioned(
+          top: 12,
+          left: 12,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: const Color(0xFFFF5F15), width: 4),
+                left: BorderSide(color: const Color(0xFFFF5F15), width: 4),
+              ),
+            ),
           ),
         ),
-        const Spacer(),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: ElevatedButton.icon(
-            onPressed: () async {
-              if (controller != null) {
-                await controller!.toggleTorch();
-                setState(() {
-                  isFlashOn = !(isFlashOn);
-                });
-              }
-            },
-            icon: Icon(isFlashOn ? Icons.flash_off : Icons.flash_on),
-            label: Text(isFlashOn ? 'Turn Off Flashlight' : 'Turn On Flashlight'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFFF5F15),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        // Top-right corner
+        Positioned(
+          top: 12,
+          right: 12,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: const Color(0xFFFF5F15), width: 4),
+                right: BorderSide(color: const Color(0xFFFF5F15), width: 4),
+              ),
+            ),
+          ),
+        ),
+        // Bottom-left corner
+        Positioned(
+          bottom: 12,
+          left: 12,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: const Color(0xFFFF5F15), width: 4),
+                left: BorderSide(color: const Color(0xFFFF5F15), width: 4),
+              ),
+            ),
+          ),
+        ),
+        // Bottom-right corner
+        Positioned(
+          bottom: 12,
+          right: 12,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: const Color(0xFFFF5F15), width: 4),
+                right: BorderSide(color: const Color(0xFFFF5F15), width: 4),
               ),
             ),
           ),
@@ -137,4 +294,126 @@ class _QrScanPageState extends State<QrScanPage> {
     );
   }
 
+  void _handleQrDetection(BarcodeCapture capture) {
+    final List<Barcode> barcodes = capture.barcodes;
+    if (barcodes.isNotEmpty && !scanned) {
+      setState(() => scanned = true);
+      controller?.stop();
+      
+      HapticFeedback.mediumImpact();
+      
+      _showQrDialog(barcodes.first);
+    }
+  }
+
+  void _showQrDialog(Barcode barcode) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.check_circle,
+                color: Colors.green.shade600,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'QR Code Detected',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Content',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SelectableText(
+                    barcode.rawValue ?? 'No data',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFFF5F15),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() => scanned = false);
+              controller?.start();
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFFFF5F15),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: const Text(
+              'Scan Again',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.popWithAd();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF5F15),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Done',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _toggleFlashlight() async {
+    if (controller != null) {
+      await controller!.toggleTorch();
+      setState(() => isFlashOn = !isFlashOn);
+    }
+  }
 }
