@@ -25,7 +25,7 @@ class _QrScanPageState extends State<QrScanPage> {
       appBar: AppBar(
         title: const Text('Scan QR Code'),
         centerTitle: true,
-        backgroundColor: Colors.blue[700],
+        backgroundColor: Color(0xFFFF5F15),
         foregroundColor: Colors.white,
         elevation: 1,
         leading: IconButton(
@@ -49,8 +49,8 @@ class _QrScanPageState extends State<QrScanPage> {
           child: AspectRatio(
             aspectRatio: 1,
             child: Container(
-              width: 260,
-              height: 260,
+              width: 300,
+              height: 180,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
@@ -111,7 +111,7 @@ class _QrScanPageState extends State<QrScanPage> {
         ),
         const Spacer(),
         Padding(
-          padding: const EdgeInsets.only(bottom: 32),
+          padding: const EdgeInsets.only(bottom: 16),
           child: ElevatedButton.icon(
             onPressed: () async {
               if (controller != null) {
@@ -124,7 +124,7 @@ class _QrScanPageState extends State<QrScanPage> {
             icon: Icon(isFlashOn ? Icons.flash_off : Icons.flash_on),
             label: Text(isFlashOn ? 'Turn Off Flashlight' : 'Turn On Flashlight'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[700],
+              backgroundColor: Color(0xFFFF5F15),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(

@@ -15,7 +15,7 @@ class _BarcodeResultPageState extends State<BarcodeResultPage> {
       appBar: AppBar(
         title: const Text('Barcode Result'),
         centerTitle: true,
-        backgroundColor: Colors.blue[700],
+        backgroundColor: Color(0xFFFF5F15),
         foregroundColor: Colors.white,
         elevation: 1,
       ),

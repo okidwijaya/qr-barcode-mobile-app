@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_app/routes/go_router_ad_extension.dart';
 
@@ -27,7 +26,7 @@ class _BarcodeScanPageState extends State<BarcodeScanPage> {
       appBar: AppBar(
         title: const Text('Scan Barcode'),
         centerTitle: true,
-        backgroundColor: Colors.blue[700],
+        backgroundColor: Color(0xFFFF5F15),
         foregroundColor: Colors.white,
         elevation: 1,
         leading: IconButton(
@@ -48,7 +47,7 @@ class _BarcodeScanPageState extends State<BarcodeScanPage> {
         const SizedBox(height: 32),
         Center(
           child: Container(
-            width: 320,
+            width: 300,
             height: 180,
             decoration: BoxDecoration(
               color: Colors.white,
@@ -133,7 +132,7 @@ class _BarcodeScanPageState extends State<BarcodeScanPage> {
             icon: Icon(isFlashOn ? Icons.flash_off : Icons.flash_on),
             label: Text(isFlashOn ? 'Turn Off Flashlight' : 'Turn On Flashlight'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[700],
+              backgroundColor: Color(0xFFFF5F15),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
@@ -151,8 +150,8 @@ class _BarcodeScanPageState extends State<BarcodeScanPage> {
             icon: const Icon(Icons.arrow_back),
             label: const Text('Back'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.blue[700],
-              side: BorderSide(color: Colors.blue[700]!, width: 2),
+              foregroundColor: Color(0xFFFF5F15),
+              side: BorderSide(color: Color(0xFFFF5F15)!, width: 2),
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

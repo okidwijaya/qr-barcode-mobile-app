@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.blue[700]!, Colors.blue[500]!],
+                  colors: [Color(0xFFFF5F15)!, Color(0xFF121212)!],
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -126,7 +126,7 @@ class _HomePageState extends State<HomePage> {
         //       },
         //       child: CircleAvatar(
         //         backgroundColor: Colors.blue[100],
-        //         child: Icon(Icons.person, color: Colors.blue[700]),
+        //         child: Icon(Icons.person, color: Color(0xFFFF5F15)),
         //       ),
         //     ),
         //   ),
@@ -140,7 +140,7 @@ class _HomePageState extends State<HomePage> {
 
               if (currentState.isLoading) {
                 return Center(
-                  child: CircularProgressIndicator(color: Colors.blue[700]),
+                  child: CircularProgressIndicator(color: Color(0xFFFF5F15)),
                 );
               }
 

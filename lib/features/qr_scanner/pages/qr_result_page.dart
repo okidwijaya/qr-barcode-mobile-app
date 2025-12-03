@@ -15,7 +15,7 @@ class _QrResultPageState extends State<QrResultPage> {
       appBar: AppBar(
         title: const Text('QR Result'),
         centerTitle: true,
-        backgroundColor: Colors.blue[700],
+        backgroundColor: Color(0xFFFF5F15),
         foregroundColor: Colors.white,
         elevation: 1,
       ),
