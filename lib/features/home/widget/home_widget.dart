@@ -107,6 +107,7 @@ class ScanHistoryList extends StatelessWidget {
           item: items[index],
           onDelete: () => controller.deleteScanItem(items[index].id),
           onCopy: () => controller.copyScanData(items[index].data),
+          onDownload: (key) => controller.downloadImage(key),
         );
       },
     );
@@ -117,12 +118,14 @@ class ScanHistoryCard extends StatelessWidget {
   final ScanItem item;
   final VoidCallback onDelete;
   final VoidCallback onCopy;
+  final Function(GlobalKey) onDownload;
 
   const ScanHistoryCard({
     Key? key,
     required this.item,
     required this.onDelete,
     required this.onCopy,
+    required this.onDownload,
   }) : super(key: key);
 
   @override
@@ -315,6 +318,8 @@ class ScanHistoryCard extends StatelessWidget {
   }
 
   void _showDetailDialog(BuildContext context, Color color, bool isBarcode) {
+    final GlobalKey imageKey = GlobalKey();
+
     showDialog(
       context: context,
       builder:
@@ -327,35 +332,37 @@ class ScanHistoryCard extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Show actual QR/Barcode image
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade300),
+                  RepaintBoundary(
+                    key: imageKey,
+                    child: Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child:
+                          isBarcode
+                              ? BarcodeWidget(
+                                barcode: Barcode.code128(),
+                                data: item.data,
+                                width: 250,
+                                height: 100,
+                                drawText: false,
+                                errorBuilder:
+                                    (context, error) => Icon(
+                                      Icons.barcode_reader,
+                                      size: 80,
+                                      color: color,
+                                    ),
+                              )
+                              : QrImageView(
+                                data: item.data,
+                                version: QrVersions.auto,
+                                size: 200,
+                                backgroundColor: Colors.white,
+                              ),
                     ),
-                    child:
-                        isBarcode
-                            ? BarcodeWidget(
-                              barcode: Barcode.code128(),
-                              data: item.data,
-                              width: 250,
-                              height: 100,
-                              drawText: false,
-                              errorBuilder:
-                                  (context, error) => Icon(
-                                    Icons.barcode_reader,
-                                    size: 80,
-                                    color: color,
-                                  ),
-                            )
-                            : QrImageView(
-                              data: item.data,
-                              version: QrVersions.auto,
-                              size: 200,
-                              backgroundColor: Colors.white,
-                            ),
                   ),
                   SizedBox(height: 16),
                   Text(
@@ -379,12 +386,40 @@ class ScanHistoryCard extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: 8),
                   Text(
                     _formatDate(item.timestamp),
                     style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                   ),
                   SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        onDownload(imageKey);
+                        Navigator.of(context).pop();
+                      },
+                      icon: const Icon(Icons.download, size: 16),
+                      label: const Text(
+                        'Download',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.green[600],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        minimumSize: const Size(0, 42),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  // Action buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [

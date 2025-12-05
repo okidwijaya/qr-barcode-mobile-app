@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:qr_app/ads/interstitial_ad_manager.dart';
+import 'package:qr_app/features/home/controller/home_controller.dart';
 import 'package:qr_app/features/splash/splash_screen.dart';
 import 'ads/app_open_ad_manager.dart';
 import 'routes/app_router.dart';
@@ -12,6 +14,8 @@ void main() async {
 
   AppOpenAdManager.loadAd();
   InterstitialAdManager.loadAd();
+
+  Get.put(HomeController(), permanent: true);
 
   runApp(const MyApp());
 }

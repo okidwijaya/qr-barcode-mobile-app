@@ -51,7 +51,6 @@ class _QrGeneratorPageState extends State<QrGeneratorPage> {
     setState(() => _isDownloading = true);
 
     try {
-      // Request storage permission
       if (Platform.isAndroid) {
         var status = await Permission.storage.status;
         if (!status.isGranted) {
@@ -68,19 +67,15 @@ class _QrGeneratorPageState extends State<QrGeneratorPage> {
         }
       }
 
-      // Wait for the frame to be rendered
       await Future.delayed(const Duration(milliseconds: 100));
 
-      // Check if the context and render object are available
       if (_qrKey.currentContext == null) {
         throw Exception('QR code not rendered yet');
       }
 
-      // Capture the QR code as image
       RenderRepaintBoundary boundary =
           _qrKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
 
-      // Ensure the boundary has been laid out
       if (!boundary.hasSize) {
         throw Exception('QR code not ready for capture');
       }

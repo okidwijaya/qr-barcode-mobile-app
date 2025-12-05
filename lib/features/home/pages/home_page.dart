@@ -18,9 +18,14 @@ class _HomePageState extends State<HomePage> {
   bool _isBannerAdLoaded = false;
   bool _isAdSupported = false;
 
+  final controller = Get.find<HomeController>();
+
   @override
   void initState() {
     super.initState();
+    
+    controller.loadScanHistory();
+
     _checkAdSupport();
     if (_isAdSupported) {
       _loadBannerAd();

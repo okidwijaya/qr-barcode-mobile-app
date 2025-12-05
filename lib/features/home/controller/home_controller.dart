@@ -4,6 +4,12 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import './home_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:ui' as ui;
+import 'dart:io';
+import 'dart:typed_data';
 
 class HomeController extends GetxController {
   final state = HomeState().obs;
@@ -17,7 +23,7 @@ class HomeController extends GetxController {
   Future<void> loadScanHistory() async {
     try {
       state.value = state.value.copyWith(isLoading: true);
-      
+
       final prefs = await SharedPreferences.getInstance();
       final qrHistory = prefs.getStringList('qr_history') ?? [];
       final barcodeHistory = prefs.getStringList('barcode_history') ?? [];
@@ -53,17 +59,10 @@ class HomeController extends GetxController {
       }
 
       items.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      state.value = state.value.copyWith(
-        isLoading: false, 
-        scanHistory: items,
-      );
-      
+      state.value = state.value.copyWith(isLoading: false, scanHistory: items);
     } catch (e, stackTrace) {
-      state.value = state.value.copyWith(
-        isLoading: false,
-        scanHistory: [],
-      );
-      
+      state.value = state.value.copyWith(isLoading: false, scanHistory: []);
+
       Get.snackbar(
         'Error',
         'Failed to load scan history: $e',
@@ -131,15 +130,17 @@ class HomeController extends GetxController {
   Future<void> _syncToSharedPreferences(List<ScanItem> items) async {
     final prefs = await SharedPreferences.getInstance();
 
-    final qrItems = items
-        .where((item) => item.type == ScanType.qr)
-        .map((item) => item.data)
-        .toList();
+    final qrItems =
+        items
+            .where((item) => item.type == ScanType.qr)
+            .map((item) => item.data)
+            .toList();
 
-    final barcodeItems = items
-        .where((item) => item.type == ScanType.barcode)
-        .map((item) => item.data)
-        .toList();
+    final barcodeItems =
+        items
+            .where((item) => item.type == ScanType.barcode)
+            .map((item) => item.data)
+            .toList();
 
     await prefs.setStringList('qr_history', qrItems);
     await prefs.setStringList('barcode_history', barcodeItems);
@@ -157,8 +158,54 @@ class HomeController extends GetxController {
     );
   }
 
-  @override
-  void onClose() {
-    super.onClose();
+  Future<void> downloadImage(GlobalKey key) async {
+    try {
+      // Request storage permission
+      if (!await Permission.storage.request().isGranted) {
+        Get.snackbar(
+          'Permission Denied',
+          'Storage permission is required to save images',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red[100],
+          colorText: Colors.red[900],
+        );
+        return;
+      }
+
+      RenderRepaintBoundary boundary =
+          key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      var image = await boundary.toImage(pixelRatio: 3.0);
+      ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
+      Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+      final directory = await getExternalStorageDirectory();
+      if (directory == null) {
+        throw Exception('Cannot access storage directory');
+      }
+
+      String fileName =
+          '${directory.path}/QR_${DateTime.now().millisecondsSinceEpoch}.png';
+      final file = File(fileName);
+      await file.writeAsBytes(pngBytes);
+
+      Get.snackbar(
+        'Success',
+        'Image saved to gallery',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green[100],
+        colorText: Colors.green[900],
+        duration: Duration(seconds: 3),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to save image: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[900],
+      );
+    }
   }
 }
